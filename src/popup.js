@@ -100,6 +100,10 @@ document.addEventListener('DOMContentLoaded', function() {
     saveApiKey.addEventListener('click', function() {
         const apiKey = apiKeyInput.value.trim();
         if (apiKey) {
+            if (apiKey.length < 20){
+                throw new Error('API key is too short');
+                return;
+            }
             chrome.storage.local.set({ 'geminiApiKey': apiKey }, function() {
                 showStatus('API key saved successfully!', 'success');
                 settingsModal.style.display = 'none';
@@ -197,7 +201,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     async function callGemini(prompt, context){
-        // Get API key from storage each time (more secure)
+
         const result = await new Promise((resolve) => {
             chrome.storage.local.get(['geminiApiKey'], resolve);
         });
@@ -215,6 +219,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 }]
             }]
         };
+
+        if (requestBody.contents[0].parts[0].text.length > 4000){
+            throw new Error('Prompt is too long (>4000 characters)');
+        }
 
         const response = await fetch(url, {
             method: 'POST',
